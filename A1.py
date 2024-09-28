@@ -31,10 +31,10 @@ def is_valid_var_name(s: str) -> bool:
     """
     # TODO
     if not (s[0] in alphabet_chars): #check first element is capital letter
-        return False
+        return False   
     for l in s:
-        if not (l in var_chars):
-            return False
+        if not (l in var_chars):   
+            return False   
     return True
 
 
@@ -83,9 +83,41 @@ def parse_tokens(s_: str, association_type: Optional[str] = None) -> Union[List[
     """
 
     s = s_[:]  #  Don't modify the original input string
+    tokens = []
+    bracket_counter = 0
+    for i in range(len(s)):
+        #check for \
+        if s[i] == "\\": 
+            tokens.append("\\")
+
+        #check for dot (if next character is a bracket, start counter and continue)
+        elif s[i] == ".": 
+            if s[i+1] == "(":
+                #TODO: handle error of i+1 being out of bounds
+                continue
+            else:
+                tokens.append("(")
+                bracket_counter += 1
+
+        elif s[i] in var_chars:
+
+            var_len_counter = 1
+            j = i
+            while s[i+1] in var_chars:
+                var_len_counter += 1
+                i += 1
+            var = s[j:j+var_len_counter]
+            if is_valid_var_name(var):
+                tokens.append(var)
+
+    #once all characters have been tokenized, append appropriate number of closing brackets to the end
+    while bracket_counter > 0:
+        tokens.append(")")
+        bracket_counter -= 1
+    
     # TODO
 
-    return []
+    return tokens
 
 
 def read_lines_from_txt_check_validity(fp: [str, os.PathLike]) -> None:
@@ -164,6 +196,8 @@ def build_parse_tree(tokens: List[str]) -> ParseTree:
 
 if __name__ == "__main__":
 
+    t = parse_tokens("\\x.(x za)")
+    print(t)
     '''
     print("\n\nChecking valid examples...")
     read_lines_from_txt_check_validity(valid_examples_fp)
@@ -182,5 +216,7 @@ if __name__ == "__main__":
     associated_sample_l = add_associativity(sample, association_type="left")
     print(associated_sample_l)
     '''
+    
+    
     
     
