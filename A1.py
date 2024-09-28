@@ -30,7 +30,12 @@ def is_valid_var_name(s: str) -> bool:
     and contains only characters and digits. Returns False otherwise.
     """
     # TODO
-    return False
+    if not (s[0] in list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")): #check first element is capital letter
+        return False
+    for l in s:
+        if not (l in var_chars):
+            return False
+    return True
 
 
 class Node:
@@ -159,6 +164,7 @@ def build_parse_tree(tokens: List[str]) -> ParseTree:
 
 if __name__ == "__main__":
 
+    '''
     print("\n\nChecking valid examples...")
     read_lines_from_txt_check_validity(valid_examples_fp)
     read_lines_from_txt_output_parse_tree(valid_examples_fp)
@@ -175,4 +181,6 @@ if __name__ == "__main__":
     print("Left association")
     associated_sample_l = add_associativity(sample, association_type="left")
     print(associated_sample_l)
+    '''
+    
     
