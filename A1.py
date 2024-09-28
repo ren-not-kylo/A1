@@ -30,7 +30,7 @@ def is_valid_var_name(s: str) -> bool:
     and contains only characters and digits. Returns False otherwise.
     """
     # TODO
-    if not (s[0] in list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")): #check first element is capital letter
+    if not (s[0] in alphabet_chars): #check first element is capital letter
         return False
     for l in s:
         if not (l in var_chars):
