@@ -86,21 +86,37 @@ def parse_tokens(s_: str, association_type: Optional[str] = None) -> Union[List[
     tokens = []
     bracket_counter = 0
     for i in range(len(s)):
+        if s[i] == " ":
+            continue # disregard whitespace
         #check for \
-        if s[i] == "\\": 
-            tokens.append("\\")
+        if s[i] == "\\" :
+            tokens.append(s[i])
+
+        elif s[i] == "(":
+            tokens.append("(")
+            bracket_counter += 1
+        elif s[i] == ")":
+            tokens.append(")")
+            bracket_counter -= 1
 
         #check for dot (if next character is a bracket, start counter and continue)
         elif s[i] == ".": 
+            tokens.append("(")
+            bracket_counter += 1
+            '''
             if s[i+1] == "(":
                 #TODO: handle error of i+1 being out of bounds
                 continue
             else:
                 tokens.append("(")
                 bracket_counter += 1
+            '''
 
-        elif s[i] in var_chars:
 
+        elif s[i] in var_chars: #alphanumeric, should be a variable
+            if s[i-1] in var_chars:
+                #ideally, if the previous token was alphanumeric, we would have already processed it as a variable, so we shouldn't need to worry about this character
+                continue
             var_len_counter = 1
             j = i
             while s[i+1] in var_chars:
@@ -196,9 +212,18 @@ def build_parse_tree(tokens: List[str]) -> ParseTree:
 
 if __name__ == "__main__":
 
-    t = parse_tokens("\\x.(x za)")
-    print(t)
+    l = "a \\x(x b)"
+    tokens = parse_tokens(l)
+    if tokens:
+        print(f"The tokenized string for input string {l} is {'_'.join(tokens)}")
+        print("\n\nChecking valid examples...")
+    read_lines_from_txt_check_validity(valid_examples_fp)
+    
     '''
+
+
+
+
     print("\n\nChecking valid examples...")
     read_lines_from_txt_check_validity(valid_examples_fp)
     read_lines_from_txt_output_parse_tree(valid_examples_fp)
