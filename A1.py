@@ -30,7 +30,7 @@ def is_valid_var_name(s: str) -> bool:
     and contains only characters and digits. Returns False otherwise.
     """
     # TODO
-    if not (s[0] in alphabet_chars): #check first element is capital letter
+    if not (s[0] in alphabet_chars): #check first element is a letter
         return False   
     for l in s:
         if not (l in var_chars):   
@@ -83,6 +83,87 @@ def parse_tokens(s_: str, association_type: Optional[str] = None) -> Union[List[
     """
 
     s = s_[:]  #  Don't modify the original input string
+    #PART 1: ERROR HANDLING
+    #split all elements into terminal elements (variables, \, (), .)
+    elements = []
+    for i in range(len(s)):
+        if s[i] in var_chars: #alphanumeric, should be a variable
+            if (s[i-1] in var_chars) and (i-1>=0):
+                #ideally, if the previous token was alphanumeric, we would have already processed it as a variable, so we shouldn't need to worry about this character
+                continue
+            var_len_counter = 1
+            j = i
+            while s[i+1] in var_chars and ((i+2)<len(s)):
+                var_len_counter += 1
+                i += 1
+            var = s[j:j+var_len_counter]
+            elements.append(var)
+        else:
+            elements.append(s[i])
+
+
+    #check for errors in the elements
+    bracket_counter = 0
+    for i in range(len(elements)):
+        #invalid character (ex. +, -)
+        if elements[i] not in all_valid_chars:
+            if len(elements[i]) > 1:
+                #multiple character variable encountered, check that it's a valid name
+                if not is_valid_var_name(elements[i]):
+                    print("invalid variable name starting at index",i)
+                    return False
+            elif elements[i] == " " or elements[i] == "\n":
+                continue
+            else:
+                print("Invalid token \""+elements[i]+"\" at index",i)
+                return False
+        
+        #backslash errors
+        elif elements[i] == "\\":
+            if i+1 == len(elements):
+                print("invalid lambda at index",i)
+                return False
+            elif elements[i+1] == " ":
+                print("Invalid space after lambda at index",i)
+                return False
+            elif not is_valid_var_name(elements[i+1]):
+                print("lambda must be followed by a valid variable at index",(i+1))
+                return False
+            elif (elements[i+2] != "(") and (elements[i+2] != ".") and (elements[i+2] != " "):
+                #the element two spaces away from the lambda must be either a space, a dot, or an opening bracket
+                print("invalid lambda expression at",i)
+                return False
+
+        
+        #open bracket
+        elif elements[i] == "(":
+            bracket_counter += 1
+            if i+1 == len(elements):
+                print("expression cannot end with opening bracket at index",i)
+                return False
+            elif elements[i+1] == ")":
+                print("missing expression at index",i)
+                return False
+            
+        # dot encountered
+        elif elements[i] == ".":
+            if i == 0:
+                print("Dot encountered at invalid index 0")
+                return False
+            elif not is_valid_var_name(elements[i-1]):
+                print("must have variable before . at index",(i-1))
+                return False
+
+        elif elements[i] == ")":
+            bracket_counter -= 1
+    
+    if bracket_counter > 0:
+        print("bracket ( is not matched with a closing bracket")
+        return False
+    elif bracket_counter < 0:
+        print("bracket ) is not matched with an opening bracket")
+        return False
+    # IF NO ERRORS: RETURN LIST OF TOKENS
     tokens = []
     bracket_counter = 0
     for i in range(len(s)):
@@ -103,16 +184,6 @@ def parse_tokens(s_: str, association_type: Optional[str] = None) -> Union[List[
         elif s[i] == ".": 
             tokens.append("(")
             bracket_counter += 1
-            '''
-            if s[i+1] == "(":
-                #TODO: handle error of i+1 being out of bounds
-                continue
-            else:
-                tokens.append("(")
-                bracket_counter += 1
-            '''
-
-
         elif s[i] in var_chars: #alphanumeric, should be a variable
             if s[i-1] in var_chars:
                 #ideally, if the previous token was alphanumeric, we would have already processed it as a variable, so we shouldn't need to worry about this character
@@ -212,25 +283,17 @@ def build_parse_tree(tokens: List[str]) -> ParseTree:
 
 if __name__ == "__main__":
 
-    l = "a \\x(x b)"
-    tokens = parse_tokens(l)
-    if tokens:
-        print(f"The tokenized string for input string {l} is {'_'.join(tokens)}")
-        print("\n\nChecking valid examples...")
-    read_lines_from_txt_check_validity(valid_examples_fp)
-    
-    '''
 
 
 
 
     print("\n\nChecking valid examples...")
     read_lines_from_txt_check_validity(valid_examples_fp)
-    read_lines_from_txt_output_parse_tree(valid_examples_fp)
+    #read_lines_from_txt_output_parse_tree(valid_examples_fp)
 
-    print("Checking invalid examples...")
+    print("\n\nChecking invalid examples...")
     read_lines_from_txt_check_validity(invalid_examples_fp)
-
+    '''
     # Optional
     print("\n\nAssociation Examples:")
     sample = ["a", "b", "c"]
